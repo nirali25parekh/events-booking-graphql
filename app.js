@@ -26,11 +26,9 @@ app.use(
         }
 
         input EventInput {
-            _id : ID!
             title: String!
             description: String!
             price: Float!
-            date: String!
         }
 
         type RootMutation {
@@ -50,11 +48,12 @@ app.use(
         },
         createEvent : (args) => {   // when 'createEvents' property triggered, this function will fire off
             const event = {
-                _id : args.eventInput._id,
+                _id : Math.random().toString(),
                 title: args.eventInput.title,
                 description: args.eventInput.description,
-                date: args.eventInput.date,
+                
                 price: args.eventInput.price,
+                date: new Date().toISOString(),
             }
             events.push(event)
             return event
