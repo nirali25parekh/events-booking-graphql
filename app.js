@@ -68,7 +68,7 @@ app.use(
         //  resolvers
         rootValue: {
             events: () => { // when 'events' property triggered, this function will fire off
-                events = Event.find().populate('creator')
+                events = Event.find()
                 return events
             },
 
@@ -85,16 +85,16 @@ app.use(
                     })
                     const savedEvent = event.save()
                     const creator = await User.findById('5edf66c3329c3a8148e6934c')
-                    
-                    if (!creator){
+
+                    if (!creator) {
                         throw new Error('No User found')
                     }
 
                     await creator.createdEvents.push(event)
                     await creator.save()
-                
+
                     return savedEvent
-                } catch (err){
+                } catch (err) {
                     console.log(err)
                     throw err
                 }
