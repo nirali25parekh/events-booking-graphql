@@ -5,9 +5,11 @@ const graphQlHttp = require('express-graphql') //-> returns a function
 const { buildSchema } = require('graphql') // returns object and we destructure it
 const mongoose = require('mongoose')
 const colors = require('colors')
+const bcrypt = require('bcryptjs')
 
 // models
 const Event = require('./models/Event')
+const User = require('./models/User')
 
 const app = express()
 
@@ -25,12 +27,16 @@ app.use(
             description: String!
             price: Float!
             date: String!
+            creator: User!
         }
 
-        type RootQuery {
-            events: [Event!]!
+        type User {
+            _id : ID!
+            email : String!
+            password: String
+            createdEvents : [Event!]
         }
-
+        
         input EventInput {
             title: String!
             description: String!
@@ -38,8 +44,19 @@ app.use(
             date: String
         }
 
+        input UserInput {
+            email : String!
+            password: String!
+        }
+
+        type RootQuery {
+            events: [Event!]!
+            users: [User!]!
+        }
+
         type RootMutation {
             createEvent(eventInput: EventInput): Event
+            createUser(userInput: UserInput): User
         }
 
         schema {
@@ -51,30 +68,57 @@ app.use(
         //  resolvers
         rootValue: {
             events: () => { // when 'events' property triggered, this function will fire off
-                events = Event.find()
+                events = Event.find().populate('creator')
                 return events
-                
             },
 
-            createEvent: (args) => {   // when 'createEvents' property triggered, this function will fire off
-                const event = new Event({
-                    title: args.eventInput.title,
-                    description: args.eventInput.description,
-                    price: args.eventInput.price,
-                    date: new Date(),
-                })
-                    return event        // tells mongodb to wait, its asynchronous, will return something
-                    .save()
-                    .then((result)=> {
-                        return result
+
+
+            createEvent: async (args) => {   // when 'createEvents' property triggered, this function will fire off
+                try {
+                    const event = new Event({
+                        title: args.eventInput.title,
+                        description: args.eventInput.description,
+                        price: args.eventInput.price,
+                        date: new Date().toISOString(),
+                        creator: '5edf66c3329c3a8148e6934c'
                     })
-                    .catch(err=> {
-                        console.log(err)
-                        throw err
-                    })
+                    const savedEvent = event.save()
+                    const creator = await User.findById('5edf66c3329c3a8148e6934c')
+                    
+                    if (!creator){
+                        throw new Error('No User found')
+                    }
+
+                    await creator.createdEvents.push(event)
+                    await creator.save()
                 
+                    return savedEvent
+                } catch (err){
+                    console.log(err)
+                    throw err
+                }
+            },
+
+            createUser: async args => {
+                try {
+                    const existingUser = await User.findOne({ email: args.userInput.email })
+                    if (existingUser) {
+                        throw new Error('User already exists')
+                    }
+                    const user = new User({
+                        email: args.userInput.email,
+                        password: bcrypt.hashSync(args.userInput.password, 12)
+                    })
+                    result = await user.save()
+                    return { ...result._doc, password: null }
+                } catch (err) {
+                    console.log(err) // displayed in console
+                    throw err // displayed in graphiql gui
+                }
             }
         },
+
 
         //for GUI
         graphiql: true,
