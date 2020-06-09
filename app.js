@@ -41,7 +41,7 @@ app.use(
             title: String!
             description: String!
             price: Float!
-            date: String
+            date: String!
         }
 
         input UserInput {
@@ -67,9 +67,14 @@ app.use(
 
         //  resolvers
         rootValue: {
-            events: () => { // when 'events' property triggered, this function will fire off
-                events = Event.find()
-                return events
+            events: async () => { // when 'events' property triggered, this function will fire off
+                const events = await Event.find()
+                return events.map(event => {
+                    return {
+                        ...event._doc,      //all the event data
+                        date: new Date(event._doc.date).toISOString()   // conversion string to Date format (otherwise date look like '1591706834535')
+                    }
+                })
             },
 
 
@@ -80,10 +85,10 @@ app.use(
                         title: args.eventInput.title,
                         description: args.eventInput.description,
                         price: args.eventInput.price,
-                        date: new Date().toISOString(),
+                        date: new Date(args.eventInput.date),
                         creator: '5edf66c3329c3a8148e6934c'
                     })
-                    const savedEvent = event.save()
+                    const savedEvent = await event.save()
                     const creator = await User.findById('5edf66c3329c3a8148e6934c')
 
                     if (!creator) {
@@ -92,8 +97,11 @@ app.use(
 
                     await creator.createdEvents.push(event)
                     await creator.save()
-
-                    return savedEvent
+                    // return savedEvent
+                    return {
+                        ...savedEvent._doc,
+                        date: new Date(savedEvent._doc.date).toISOString()   // conversion string to Date format (otherwise date look like '1591706834535')
+                    }
                 } catch (err) {
                     console.log(err)
                     throw err
