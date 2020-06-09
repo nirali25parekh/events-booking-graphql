@@ -1,18 +1,24 @@
+// packages
 const bodyParser = require('body-parser')
 const express = require('express')
 const graphQlHttp = require('express-graphql') //-> returns a function
-const { buildSchema } = require ('graphql') // returns object and we destructure it
+const { buildSchema } = require('graphql') // returns object and we destructure it
+const mongoose = require('mongoose')
+const colors = require('colors')
+
+// models
+const Event = require('./models/Event')
 
 const app = express()
 
-var events = []
+// var events = []
 
 app.use(
     '/graphql',
- graphQlHttp({      //params:  schemas, resolvers necessary
+    graphQlHttp({      //params:  schemas, resolvers necessary
 
-     //schema     
-    schema: buildSchema(`
+        //schema     
+        schema: buildSchema(`
         type Event {
             _id : ID!
             title: String!
@@ -29,6 +35,7 @@ app.use(
             title: String!
             description: String!
             price: Float!
+            date: String
         }
 
         type RootMutation {
@@ -39,28 +46,47 @@ app.use(
             query: RootQuery,
             mutation: RootMutation,
         }
-    `), 
+    `),
 
-    //  resolvers
-    rootValue: {
-        events: () => { // when 'events' property triggered, this function will fire off
-            return events
-        },
-        createEvent : (args) => {   // when 'createEvents' property triggered, this function will fire off
-            const event = {
-                _id : Math.random().toString(),
-                title: args.eventInput.title,
-                description: args.eventInput.description,
+        //  resolvers
+        rootValue: {
+            events: () => { // when 'events' property triggered, this function will fire off
+                events = Event.find()
+                return events
                 
-                price: args.eventInput.price,
-                date: new Date().toISOString(),
+            },
+
+            createEvent: (args) => {   // when 'createEvents' property triggered, this function will fire off
+                const event = new Event({
+                    title: args.eventInput.title,
+                    description: args.eventInput.description,
+                    price: args.eventInput.price,
+                    date: new Date(),
+                })
+                    return event        // tells mongodb to wait, its asynchronous, will return something
+                    .save()
+                    .then((result)=> {
+                        return result
+                    })
+                    .catch(err=> {
+                        console.log(err)
+                        throw err
+                    })
+                
             }
-            events.push(event)
-            return event
-        }
-    },   
-    
-    //for GUI
-    graphiql: true,     
-}))
-app.listen(3000)
+        },
+
+        //for GUI
+        graphiql: true,
+    }))
+
+mongoose
+    .connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@cluster0-vg6by.mongodb.net/${process.env.MONGO_DB}?retryWrites=true&w=majority`)
+    .then(() => {
+        console.log(`Database connected ${process.env.MONGO_DB}`.yellow)
+        app.listen(3000)
+    })
+    .catch(err => {
+        console.log(err).red
+        throw err
+    })
