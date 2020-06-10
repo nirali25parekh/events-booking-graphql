@@ -2,7 +2,6 @@
 const bodyParser = require('body-parser')
 const express = require('express')
 const graphQlHttp = require('express-graphql') //-> returns a function
-
 const mongoose = require('mongoose')
 const colors = require('colors')
 
@@ -10,9 +9,12 @@ const colors = require('colors')
 const graphQlSchema = require('./graphql/schema/index')
 const graphQlResolver = require('./graphql/resolver/index')
 
-
+// middleware
+const isAuth = require('./middleware/isAuth')
 
 const app = express()
+
+app.use(isAuth)
 
 app.use(
     '/graphql',
@@ -20,10 +22,8 @@ app.use(
 
         //schema     
         schema: graphQlSchema,
-
         //  resolvers
         rootValue: graphQlResolver,
-
         //for GUI
         graphiql: true,
     }))

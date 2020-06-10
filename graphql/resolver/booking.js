@@ -3,17 +3,23 @@ const { transformBooking, transformEvent} = require('../../helpers/helperFunctio
 
 module.exports = {
 
-    bookings: async () => {
+    bookings: async (args, req) => {
+        if (!req.isAuth){
+            throw new Error('User not authenticated')
+        }
         const bookings = await Booking.find()
         return bookings.map(booking => {
             return transformBooking(booking)
         })
     },
 
-    bookEvent: async args => {
+    bookEvent: async (args, req) => {
+        if (!req.isAuth){
+            throw new Error('User not authenticated')
+        }
         try {
             const booking = new Booking({
-                user: "5ee0b0daf414607b98a72876",
+                user: req.userId,
                 event: args.eventId,
             })
             result = await booking.save()
@@ -24,6 +30,9 @@ module.exports = {
     },
 
     cancelBooking: async args => {  // returns the event
+        if (!req.isAuth){
+            throw new Error('User not authenticated')
+        }
         try {
             const bookingToBeDeleted = await Booking.findById(args.bookingId).populate('event')
             await Booking.deleteOne({ _id: args.bookingId })

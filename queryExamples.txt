@@ -1,0 +1,75 @@
+query getAllEvents {
+  events {
+    date
+    title
+    _id
+    creator {
+      email
+    }
+  }
+}
+
+mutation createEvent {
+  createEvent(eventInput: {title: " new title 1", price: 34.56, description: "my description", date: "2020-06-09T12:47:14.535Z"}) {
+    title
+    _id
+    date
+  }
+}
+
+mutation createUser {
+  createUser(userInput: {email: "trialemail1.com", password: "pass@123"}) {
+    email
+    password
+  }
+}
+
+query nestedQuery {
+  events {
+    creator {
+      email
+      createdEvents {
+        title
+        creator {
+          email
+        }
+      }
+    }
+  }
+}
+
+query getAllBookings {
+  bookings {
+    createdAt
+    _id
+  }
+}
+
+mutation bookEvent {
+  bookEvent(eventId: "5ee0b1b15bd56e6eb4c108ce") {
+    _id
+    createdAt
+    user {
+      email
+    }
+  }
+}
+
+mutation cancelBooking {
+  cancelBooking(bookingId: "5ee0b2205bd56e6eb4c108d1") {
+    _id
+    title
+    date
+    creator {
+      email
+    }
+  }
+}
+
+query login {
+  login(authInput: {email: "trialemail1.com", password: "pass@123"}) {
+    userId
+    tokenExpiration
+    token
+  }
+}
