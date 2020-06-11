@@ -1,20 +1,20 @@
 const Booking = require('../../models/Booking')
-const { transformBooking, transformEvent} = require('../../helpers/helperFunctions')
+const { transformBooking, transformEvent } = require('../../helpers/helperFunctions')
 
 module.exports = {
 
     bookings: async (args, req) => {
-        if (!req.isAuth){
+        if (!req.isAuth) {
             throw new Error('User not authenticated')
         }
-        const bookings = await Booking.find()
+        const bookings = await Booking.find({ user: req.userId })
         return bookings.map(booking => {
             return transformBooking(booking)
         })
     },
 
     bookEvent: async (args, req) => {
-        if (!req.isAuth){
+        if (!req.isAuth) {
             throw new Error('User not authenticated')
         }
         try {
@@ -29,8 +29,8 @@ module.exports = {
         }
     },
 
-    cancelBooking: async args => {  // returns the event
-        if (!req.isAuth){
+    cancelBooking: async (args, req) => {  // returns the event
+        if (!req.isAuth) {
             throw new Error('User not authenticated')
         }
         try {

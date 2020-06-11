@@ -28,7 +28,7 @@ class MainNavigation extends React.Component {
                   {context.token && (
                       <React.Fragment>
                     <li>
-                      <NavLink to="/bookings">Bookings</NavLink>
+                      <NavLink to="/bookings">My Bookings</NavLink>
                     </li>
                     <li>
                         <button onClick={context.logout}> Logout </button>
