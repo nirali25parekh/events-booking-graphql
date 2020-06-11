@@ -71,7 +71,7 @@ class Auth extends React.Component {
       const resData = await res.json();
       console.log('resData', resData)
 
-      // incase of a login
+      // incase of a login 
       if (resData.data.login.token) {
         this.context.login(
           resData.data.login.token,
