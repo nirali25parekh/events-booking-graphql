@@ -35,27 +35,35 @@ class Auth extends React.Component {
     // for login
     requestBody = {
       query: `
-      query {
-            login( authInput: {email: "${email}", password: "${password}"} ) {
+      query login ($email: String!, $password: String!){
+            login( authInput: {email: $email, password: $password} ) {
               userId
               tokenExpiration
               token
             }
           }
           `,
+          variables:{
+            email: email,
+            password: password
+          }
     };
 
     if (!this.state.isLogin) {
       // for signup
       requestBody = {
         query: `
-          mutation {
-              createUser(userInput: {email: "${email}", password: "${password}"}) {
+          mutation signup ($email: String!, $password: String!){
+              createUser(userInput: {email: $email, password: $password}) {
                   _id
                 email
               }
             }
           `,
+          variables:{
+            email: email,
+            password: password
+          }
       };
     }
 
